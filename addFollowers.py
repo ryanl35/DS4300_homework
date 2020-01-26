@@ -6,8 +6,8 @@ import csv
 
 con = redis.Redis(host='localhost', port=6379, db = 0)
 
-def postTweet():
-    tweetscsv = open("generatedTweets.csv", "r") #opens tweets csv from HW1
+def addFollowers():
+    tweetscsv = open("generatedFollowers.csv", "r") #opens tweets csv from HW1
     cleanedTweets = csv.reader(tweetscsv, delimiter=',')
     next(cleanedTweets) #skips the first row
     i = 0 

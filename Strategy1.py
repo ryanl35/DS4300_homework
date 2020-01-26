@@ -8,12 +8,12 @@ con = redis.Redis(host='localhost', port=6379, db = 0)
 
 def postTweet():
     tweetscsv = open("generatedTweets.csv", "r") #opens tweets csv from HW1
-    cleanedTweets = csv.reader(tweetscsv, delimiter=',')
+    tweetsReader = csv.reader(tweetscsv, delimiter=',')
     next(cleanedTweets) #skips the first row
     i = 0 
     dict = {}
     t0 = time.time()
-    for tweet in cleanedTweets:
+    for tweet in tweetsReader:
         user_id = tweet[1]
         text = tweet[3]
         ts = time.time()
