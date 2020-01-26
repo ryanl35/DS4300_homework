@@ -14,7 +14,7 @@ def postTweet():
         dict = {}
         for tweet in cleanedTweets:
             index = i
-            text = lines[3]
+            text = tweet[3]
             dict = {text:index}
             con.zadd('tweets',dict)
             i += 1
