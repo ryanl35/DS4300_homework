@@ -7,16 +7,15 @@ import csv
 con = redis.Redis(host='localhost', port=6379, db = 0)
 
 def postTweet():
-    with open("generatedTweets.csv", "r") as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        # the below statement will skip the first row
-        next(csv_reader)
-        i=0
+    with open("generatedTweets.csv", "r") as tweetscsv: #opens tweets csv from HW1
+        cleanedTweets = csv.reader(tweetscsv, delimiter=',')
+        next(cleanedTweets) #skips the first row
+        i = 0 
         dict = {}
-        for lines in csv_reader:
-            time = i
+        for tweet in cleanedTweets:
+            index = i
             text = lines[3]
-            dict = {text:time}
+            dict = {text:index}
             con.zadd('tweets',dict)
             i += 1
 
