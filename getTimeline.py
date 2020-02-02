@@ -11,15 +11,10 @@ def getTimeline():
     for x in range(15000):
         i = 0 
         thisuser = x
-        followees = list(con.smembers(thisuser))
+        followees = list(con.smembers(thisuser)) # list of users this person follows
         for user in followees:
             f = 'tweets:' + user.decode()
-            tweets = con.zrange(f, 0, -1)
-            j = 0 
-            for tweet in tweets:
-                j += 1
-            i += 1
-    
+            tweets = con.zrange(f, 0, -1)    
 
     t1 = time.time()
 

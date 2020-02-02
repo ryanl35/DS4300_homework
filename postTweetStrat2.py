@@ -18,14 +18,18 @@ def postTweet():
         text = tweet[3]
         ts = time.time()
         con.zadd('tweets:' + str(user_id), {text:ts})
-
-        followees = list(con.smembers(user_id))
+        followers = list(con.smembers(user_id))
         j = 0
-        for user in followees:
-            con.hset('timeline: ' user, 'origin_id', user_id)
-            con.hset('timeline: ' user, 'tweet', text)
-            con.hset('timeline: ' user, 'ts', ts)
+        for user in followers:
+            actUser = user.decode()
+            con.hset('timeline:'+ str(actUser), 'ts', ts)
+            con.hset('timeline:'+ str(actUser), 'tweet', text)
+            con.hset('timeline:'+ str(actUser), 'origin_id', user_id)
             j += 1
+        if i == 10000:
+            break
+        if i % 1000 == 0:
+            print(i)
         i += 1
 
     t1 = time.time()
