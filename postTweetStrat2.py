@@ -6,6 +6,7 @@ import csv
 
 con = redis.Redis(host='localhost', port=6379, db = 0)
 
+# Strategy 2, inserts tweet from CSV to Redis
 def postTweet():
     tweetscsv = open("generatedTweets.csv", "r") #opens tweets csv from HW1
     cleanedTweets = csv.reader(tweetscsv, delimiter=',')
@@ -26,9 +27,7 @@ def postTweet():
             con.hset('timeline:'+ str(actUser), 'tweet', text)
             con.hset('timeline:'+ str(actUser), 'origin_id', user_id)
             j += 1
-        if i == 10000:
-            break
-        if i % 1000 == 0:
+        if i % 1000 == 0: # keeps track of how far we are in the 1M tweet insertion
             print(i)
         i += 1
 

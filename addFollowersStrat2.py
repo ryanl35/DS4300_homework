@@ -6,6 +6,7 @@ import csv
 
 con = redis.Redis(host='localhost', port=6379, db = 0)
 
+# Strategy 2, Run first, adds followers ID's to User ID
 def addFollowers():
     followerscsv = open("generatedFollowers.csv", "r") #opens followers csv from HW1
     cleanedFollowers = csv.reader(followerscsv, delimiter=',')

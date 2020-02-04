@@ -6,6 +6,7 @@ import csv
 
 con = redis.Redis(host='localhost', port=6379, db = 0)
 
+# Strategy 1, Reads Redis and gets timelines
 def getTimeline():
     t0 = time.time()
     for x in range(15000):
