@@ -15,7 +15,7 @@ client = MongoClient('mongodb://localhost:27017/')
 
 # Part 2 - Search API
 
-class MongoDBClass ():
+class MongoDBClass:
 
     def addPeopleToDatabase():
         # create the two lists
