@@ -56,5 +56,23 @@ def post_food():
     mycol = mydb["posts"]
     mycol.insert_one(post)
 
+
+@app.route('/files')
+def files():
+    if request.args.get('dirName'):
+        path = request.args.get('dirName') + '/'
+    else:
+        path = 'user_files/'
+    print(path)
+    fileNames = []
+    for root, directories, files in os.walk(path):
+        print(root)
+        print(directories)
+        print(files)
+        break
+    # lines = getFileContents()
+    return render_template('files.html', root = root, directories = directories, files = files)
+
+
 if __name__ == '__main__':
     app.run()
