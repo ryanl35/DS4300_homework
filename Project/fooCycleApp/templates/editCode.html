@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>CodeMirror</title>
+		<!-- For CodeMirror -->
+		<link rel="stylesheet" type="text/css" href="plugin/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="plugin/codemirror/theme/dracula.css">
+		<!-- For Websockets -->
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+    <style>
+    body{
+      background-color: #282a36;
+			color: white;
+    }
+    </style>
+	</head>
+	<body>
+		<h3 id="myHeader"></h3>
+		<textarea class="codemirror-textarea" id="editor"></textarea>
+		<button onclick="location.href = '/files'">Back</button>
+		<button id="saveButton">Save</button>
+    <!-- <textarea id="editor"></textarea> -->
+
+		<!-- javascript -->
+		<script type="text/javascript" src="js/jquery.min.js"></script>
+		<script type="text/javascript" src="plugin/codemirror/lib/codemirror.js"></script>
+		<script type="text/javascript" src="js/default.js"></script>
+		<script type="text/javascript" src="js/he.js"></script>
+
+    <script>
+
+    $(document).ready(function(){
+			// Create CodeMirror textarea
+      var cm = new CodeMirror.fromTextArea(document.getElementById("editor"), {
+        lineNumbers: true,
+				value: "def myScript():\n\treturn 100\n",
+        // mode: "python",
+				mode: "clike",
+        theme: "dracula",
+        lineWrapping: false
+      });
+
+			// Insert the file contents into the editor
+			var initValue = "";
+			{% for line in lines %}
+			initValue += "{{ line }}".replace(/(\r\n|\n|\r)/gm,"").replace(/&#34;/g, '"') + "\n";
+			{% endfor %}
+			var decodedInitVal = he.decode(initValue);
+			// decodedInitVal.replace('\\u0000', "fsd")
+			// console.log(finalAns);
+			cm.getDoc().setValue(decodedInitVal);
+			var string = '{{ file }}';
+			var result = string.substring(string.indexOf("/") + 1);
+			myHeader.innerText = 'File: ' + result;
+
+			// Connect to server with websockets
+			var address = 'http://' + document.domain + ':' + location.port;
+			console.log(address);
+			// var socket = io.connect('http://127.0.0.1:5000');
+			// var socket = io.connect('http://192.168.99.100:5000');
+			 var socket = io.connect(address);
+	    // var socket = io.connect('http://ec2-18-221-92-38.us-east-2.compute.amazonaws.com:5000');
+
+			var file = '{{ file }}';
+			var beforeChangeNumLines = cm.lineCount();
+			// Catching extraKeys
+			// cm.setOption("extraKeys", {
+				// INCLUDE LATER TO REPLACE TABS WITH SPACES
+			  // Tab: function(cm) {
+			  //   var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+			  //   cm.replaceSelection(spaces);
+			  // }
+				// Do one for Ctrl+S to save document
+				// CodeMirror.commands.save = function() {
+    			/* Do your stuff */
+				// };
+			// });
+
+			// Function called when an event happens like a key press
+			var currentCursorPosition = cm.getCursor();
+			cm.on("change", function(cm, change) {
+				var afterChangeNumLines = cm.lineCount();
+				// This will only happen if the update is not from a original update from the server
+				if (change.origin != "RecievedJSONUpdate" && beforeChangeNumLines == afterChangeNumLines) {
+					var data = {
+						"Type": "Update",
+						"File": file,
+						"Line": cm.getCursor().line,
+						"Change": cm.getLine(cm.getCursor().line)
+					}
+					var dataJSON = JSON.stringify(data);
+					console.log(dataJSON);
+					socket.send(dataJSON);
+				} else if (change.origin != "RecievedJSONUpdate" && afterChangeNumLines > beforeChangeNumLines) { // added lines
+					// We added lines. Either by pressing enter or pasting stuff
+					console.log("Added Lines");
+					currentCursorPosition = cm.getCursor();
+					console.log(currentCursorPosition);
+					var data = {
+							"Type": "Added Lines",
+							"File": file,
+							"Line": cm.getCursor().line,  // this is the line where the cursor is at currently
+							"Added Lines": afterChangeNumLines - beforeChangeNumLines,
+							"Update": cm.getValue()
+						}
+						var dataJSON = JSON.stringify(data);
+						console.log(dataJSON);
+						socket.send(dataJSON);
+					beforeChangeNumLines = afterChangeNumLines;
+				} else if (change.origin != "RecievedJSONUpdate" && afterChangeNumLines < beforeChangeNumLines) { // removed lines
+					// We added lines. Either by pressing enter or pasting stuff
+					currentCursorPosition = cm.getCursor();
+					console.log(currentCursorPosition);
+					var data = {
+							"Type": "Removed Lines",
+							"File": file,
+							"Line": cm.getCursor().line,  // this is the line where the cursor is at currently
+							"Removed Lines": beforeChangeNumLines - afterChangeNumLines,
+							"Update": cm.getValue()
+						}
+						var dataJSON = JSON.stringify(data);
+						console.log(dataJSON);
+						socket.send(dataJSON);
+					beforeChangeNumLines = afterChangeNumLines;
+				}
+			})
+
+			// Handle changes in document when we receive a json
+			socket.on('message', function(json) {
+				console.log('Received json: ' + json);
+				var jsonData = JSON.parse(json);
+				if (jsonData["File"] == file) {
+					if (jsonData["Type"] == "Update") {
+						var fromLine = {"line": jsonData["Line"], "ch": 0};
+						var toLine = {"line": jsonData["Line"]};
+						var update = jsonData["Change"];
+						console.log('fromLine: ' + fromLine + ' toLine: ' + toLine + ' update: ' + update);
+						if (cm.getLine(jsonData["Line"]) != update) {
+							cm.replaceRange(update, fromLine, toLine, "RecievedJSONUpdate");
+						}
+					} else if (jsonData["Type"] == "Added Lines") {
+						var currentCursorPosition = cm.getCursor();
+						if (currentCursorPosition.line >= jsonData['Line']) {
+							currentCursorPosition.line += jsonData['Added Lines'];
+						}
+						if (currentCursorPosition.line > cm.lineCount()) {
+							currentCursorPosition.line == cm.lineCount();
+						}
+						var fromLine = {"line": 0, "ch": 0};
+						var toLine = {"line": cm.lineCount()};
+						cm.replaceRange(jsonData['Update'], fromLine, toLine, "RecievedJSONUpdate");
+						cm.setCursor(currentCursorPosition);
+					} else if (jsonData["Type"] == "Removed Lines") {
+						var currentCursorPosition = cm.getCursor();
+						if (currentCursorPosition.line > jsonData['Line']) {
+							currentCursorPosition.line -= jsonData['Removed Lines'];
+						}
+						if (currentCursorPosition.line < 0) {
+							currentCursorPosition.line == 0;
+						}
+						var fromLine = {"line": 0, "ch": 0};
+						var toLine = {"line": cm.lineCount()};
+						cm.replaceRange(jsonData['Update'], fromLine, toLine, "RecievedJSONUpdate");
+						cm.setCursor(currentCursorPosition);
+					} else if (jsonData["Type"] == "Save Update") {
+						alert(jsonData["Update"]);
+					}
+				}
+
+			});
+
+			// Save button pressed
+			$("#saveButton").click(function(){
+				var data = {
+						"Type": "Save",
+						"File": file,
+						"Update": cm.getValue()
+					}
+					var dataJSON = JSON.stringify(data);
+					console.log(dataJSON);
+					socket.send(dataJSON);
+    	});
+
+    });
+    </script>
+
+	</body>
+</html>
