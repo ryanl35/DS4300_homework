@@ -3,6 +3,13 @@ import random
 
 #connecting to the database
 
+def genID(chars):
+    idChars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    id = ''
+    while len(id) != chars:
+        id = id + random.choice(idChars)
+    return id
+
 def create_community():
     zipcode = input("Enter community zipcode: ")
     community = input("Enter community name: ")
@@ -24,6 +31,11 @@ def post_food():
     food_description = input("Describe your food!: ")
     food_price = input("Enter price of food: ")
     user_id = input("Enter your user id: ")
+    
+    post_id = genID(8)
+    
+    while post_id in [i['post_id'] for i in mycol.find()]:
+        post_id = genID(8)
 
     post = {
         'post_id' : len([i for i in mycol.find()]) + 1,
@@ -57,15 +69,17 @@ def add_user():
     mydb = myclient["foodpool"]
     mycol = mydb["users"]
     
-    cursor = cnx.cursor()
     user_name = input("Enter Name: ")
     verified = input("Are you verified (y/n) ?: ")
     zipcode = input("What is your zipcode?: ")
     
-    user_id = len([i for i in mycol.find()])
+    user_id = genID(8)
+    
+    while user_id in [i['user_id'] for i in mycol.find()]:
+        user_id = genID(8)
 
     user_record = {
-        'user_id' : user_id + 1,
+        'user_id' : user_id,
         'user_name' : user_name,
         'verified' : verified,
         'zipcode' : zipcode,
@@ -138,12 +152,10 @@ if __name__ == '__main__':
     elif (user_input == "all"):
         allUsers()
 
-
     elif (user_input == "exit"):
       #Disconnect from the database
-      print("Disconnected")
-      cnx.close
-      break
+        print("Disconnected")
+        break
     
     else:
       print("\nOh no! Invalid command. Try typing one of the following: ",
