@@ -1,0 +1,10 @@
+
+<div class="FlaskForm">
+  <h2 class="registerUser">Contact</h2>
+  <form method="POST" action="/registerUserSubmit">
+      <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
+      <div class="verified">{{ form.verified.label }} {{ form.verified }}</div>
+      <div class="zipcode">{{ form.zipcode.label }} {{ form.zipcode }}</div>
+      {{ form.submit }}
+  </form>
+</div>
