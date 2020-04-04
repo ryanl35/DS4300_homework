@@ -1,0 +1,15 @@
+ideas:
+
+-delete community, user, and post functions. 
+
+-add invalid key constraints to each function
+
+-have verification approval done manually in a mongodb collection and have it be checked in the add_user function. 
+	For example, we could have a pymongo collection with names and approval statuses and we could fetch the verification status from there
+	when users make a post or add themselves to the database
+
+-make all_users display more user-friendly 
+
+-add constraint to add_community in case a zip code exists already
+
+-username/password logins? session management? 
