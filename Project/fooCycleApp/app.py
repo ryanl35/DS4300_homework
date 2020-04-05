@@ -43,28 +43,71 @@ print("Connected to DB")
 def index():
     return render_template('index.html')
 
-@app.route('/createCommunity')
+# ORGANIZED BY CRUD OPERATION
+
+# C(REATE) OPERATIONS
+# Create a community, post a food item, register a user
+
+class createCommunity(FlaskForm):
+    """Start a new community!"""
+    zipcode = StringField('Community\'s zipcode:'', [DataRequired()])
+    community = StringField('Name of your community:')[ DataRequired()]
+
+@app.route('/createCommunity', methods=('GET', 'POST'))
 def create_community():
+    form = createCommunity()
+    return render_template('/createCommunity.html', form = form)
 
-    # zipcode = input("Enter community zipcode: ")
-    # localhost:5000/createCommunity?zipcode=_?communityName=_
-    # community = input("Enter community name: ")
+@app.route('/createCommunity')
+def create_community_submit():
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "zipcode"):
+            zipcode = value
+        elif (key == "community"):
+            community = value
 
-    zipcode = input("Enter community zipcode: ")
-    community = input("Enter community name: ")
+    print("Found community info:", zipcode, community)
+
+    mydb = myclient["foodpool"]
+    mycol = mydb["communities"]
 
     community_name = {
         'zipcode' : zipcode,
         'comm_name': community,
     }
-    mydb = myclient["foodpool"]
-    mycol = mydb["communities"]
+
     mycol.insert_one(community_name)
+    return redirect('/home')
 
+class postFood(FlaskForm):
+    """Post a Food Item."""
+    food_name = StringField('Name of Food', [DataRequired()])
+    food_description = StringField('Describe your food!')
+    food_price = StringField('Price', [DataRequired()])
+    user_id = StringField('User ID')
+    submit = SubmitField('Register')
 
-# localhost:5000/postFood?foodName=Chocolate Cake?food_cal=500
-@app.route('/postFood')
+@app.route('/postFood', methods=('GET', 'POST'))
 def post_food():
+    form = postFood()
+    return render_template('/postFood.html', form = form)
+
+@app.route('/postFoodSubmit', methods=('GET', 'POST'))
+def post_food_submit():
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "food_name"):
+            food_name = value
+        elif (key == "food_description"):
+            food_description = value
+        elif (key == "food_price"):
+            food_price = value
+        elif (key == "user_id"):
+            user_id = value
+
+    print("Found food info:", food_name, food_description, food_price, user_id)
+
     mydb = myclient["foodpool"]
     mycol = mydb["posts"]
 
@@ -87,30 +130,9 @@ def post_food():
         'user_id' : user_id,
     }
 
-    mycol = mydb["posts"]
     mycol.insert_one(post)
+    return redirect('/home')
 
-@app.route('/totalPosts')
-def totalPosts():
-    mydb = myclient["foodpool"]
-    mycol = mydb["posts"]
-
-    print("\nTotal number of posts: " + len([i for i in mycol.find()]))
-
-@app.route('/allUsers')
-def allUsers():
-    mydb = myclient["foodpool"]
-    mycol = mydb["users"]
-    totalPosts = len([i for i in mycol.find()])
-
-    if (totalPosts == 0):
-        # print("\nNo users to show!")
-        users = ["No users to show!"]
-    else:
-        # for i in mycol.find():
-        #     print(i)
-        users = mycol.find()
-    return render_template('/allUsers.html', users = users)
 
 class registerUser(FlaskForm):
     """Register user form."""
@@ -135,6 +157,8 @@ def add_user_submit():
         elif (key == "zipcode"):
             zipcode = value
     print("Found user info:", user_name, verified, zipcode)
+
+    # Mongo code for inserting data into our database
     mydb = myclient["foodpool"]
     mycol = mydb["users"]
     user_id = genID(8)
@@ -149,16 +173,30 @@ def add_user_submit():
         'zipcode' : zipcode,
     }
 
-    mycol = mydb["users"]
     mycol.insert_one(user_record)
     return redirect('/home')
 
-def genID(chars):
-    idChars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-    id = ''
-    while len(id) != chars:
-        id = id + random.choice(idChars)
-    return id
+@app.route('/totalPosts')
+def totalPosts():
+    mydb = myclient["foodpool"]
+    mycol = mydb["posts"]
+
+    print("\nTotal number of posts: " + len([i for i in mycol.find()]))
+
+@app.route('/allUsers')
+def allUsers():
+    mydb = myclient["foodpool"]
+    mycol = mydb["users"]
+    totalPosts = len([i for i in mycol.find()])
+
+    if (totalPosts == 0):
+        # print("\nNo users to show!")
+        users = ["No users to show!"]
+    else:
+        # for i in mycol.find():
+        #     print(i)
+        users = mycol.find()
+    return render_template('/allUsers.html', users = users)
 
 @app.route('/viewPostings')
 def view_postings():
@@ -176,6 +214,15 @@ def view_postings():
                   + ", Description: " + i['food_descr']
                   + ", Price of food: " + i['food_price']
                   + ", Poster: " + i['user_id'] + "\n")
+
+# HELPER FUNCTIONS
+def genID(chars):
+    idChars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    id = ''
+    while len(id) != chars:
+        id = id + random.choice(idChars)
+    return id
+
 
 
 if __name__ == '__main__':
