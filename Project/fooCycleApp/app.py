@@ -50,8 +50,8 @@ def index():
 
 class createCommunity(FlaskForm):
     """Start a new community!"""
-    zipcode = StringField('Community\'s zipcode:'', [DataRequired()])
-    community = StringField('Name of your community:')[ DataRequired()]
+    zipcode = StringField("Community's zipcode:", [DataRequired()])
+    community = StringField('Name of your community:', [ DataRequired()])
 
 @app.route('/createCommunity', methods=('GET', 'POST'))
 def create_community():
