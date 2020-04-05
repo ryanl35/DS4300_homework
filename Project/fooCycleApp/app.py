@@ -51,14 +51,15 @@ def index():
 class createCommunity(FlaskForm):
     """Start a new community!"""
     zipcode = StringField("Community's zipcode:", [DataRequired()])
-    community = StringField('Name of your community:', [ DataRequired()])
+    community = StringField('Name of your community:', [DataRequired()])
+    submit = SubmitField('Register')
 
 @app.route('/createCommunity', methods=('GET', 'POST'))
 def create_community():
     form = createCommunity()
     return render_template('/createCommunity.html', form = form)
 
-@app.route('/createCommunity')
+@app.route('/createCommunitySubmit', methods=('GET', 'POST'))
 def create_community_submit():
     for key, value in request.form.items():
         print("key: {0}, value: {1}".format(key, value))
@@ -86,7 +87,7 @@ class postFood(FlaskForm):
     food_description = StringField('Describe your food!')
     food_price = StringField('Price', [DataRequired()])
     user_id = StringField('User ID')
-    submit = SubmitField('Register')
+    submit = SubmitField('Post')
 
 @app.route('/postFood', methods=('GET', 'POST'))
 def post_food():
@@ -150,10 +151,14 @@ def add_user():
 def add_user_submit():
     for key, value in request.form.items():
         print("key: {0}, value: {1}".format(key, value))
+        verified = "no"
         if (key == "user_name"):
             user_name = value
         elif (key == "verified"):
-            verified = value
+            if (value == 'y'):
+                verified = "yes"
+            # elif (value == 'n'):
+            #     verified == "no"
         elif (key == "zipcode"):
             zipcode = value
     print("Found user info:", user_name, verified, zipcode)
@@ -175,6 +180,10 @@ def add_user_submit():
 
     mycol.insert_one(user_record)
     return redirect('/home')
+
+# R(EAD) OPERATIONS
+# Viweing the total # of posts in the community, viewing all of the posts in the
+# community, viewing a user
 
 @app.route('/totalPosts')
 def totalPosts():
@@ -224,6 +233,6 @@ def genID(chars):
     return id
 
 
-
+# Main function
 if __name__ == '__main__':
     app.run()
