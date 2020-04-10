@@ -1,6 +1,11 @@
-<div>
-  user_name:
-  <h1>{{ user['user_name'] }}</h1><br>
-  <h2>{{ user['verified'] }}</h2><br>
-  <h3>{{ user['zicode'] }}</h3><br>
+
+<div class="FlaskForm">
+  <h2 class="updateUser">Contact</h2>
+  <form method="POST" action="/updateUserSubmit">
+      <div class="user_id">{{ form.user_id.label }} {{ form.user_id(size=20) }}</div>
+      <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
+      <div class="verified">{{ form.verified.label }} {{ form.verified }}</div>
+      <div class="zipcode">{{ form.zipcode.label }} {{ form.zipcode }}</div>
+      {{ form.submit }}
+  </form>
 </div>

@@ -256,20 +256,58 @@ def view_user_postings_submit():
     return render_template('/showUserPostings.html', posts = posts)
 
 
+# U(PDATE) OPERATIONS
+# Updating a usrs profile, updating the attribtues of a community,
+# updating a food item
+
+class updateUser(FlaskForm):
+    """Edit your profile here."""
+    user_id = StringField('Enter your user id here:', [DataRequired()])
+    user_name = StringField('New Name:')
+    verified = BooleanField('Have you been verified?')
+    zipcode = StringField('New Zipcode:')
+    submit = SubmitField('Edit your profile!!')
+
 @app.route('/updateUser', methods=('GET', 'POST'))
-def update_profile():
+def update_user():
+    queryform = updateUser()
+    return render_template('/updateUser.html', form = queryform)
+
+@app.route('/updateUserSubmit', methods=('GET', 'POST'))
+def update_user_submit():
     mydb = myclient["foodpool"]
     mycol = mydb["users"]
-    user = mycol.find( {   "user_name" : "Ryan"   } )
-    print(user)
 
-    return render_template('/updateUser.html', user = user)
-    # form = registerUser()
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "user_id"):
+            user_id = value
+        elif (key == "user_name"):
+            user_name = value
+        elif (key == "verified"):
+            if (value == 'y'):
+                verified = "yes"
+            elif (value == 'n'):
+                verified == "no"
+        elif (key == "zipcode"):
+            zipcode = value
 
+    user = mycol.find( { "user_id" : user_id } )
 
-# def update_user_submit():
-#     mydb = myclient["foodpool"]
-#     mycol = mydb["users"]
+    if (user_name != ""):
+        newAttributes = {'$set': { 'user_name' : user_name} }
+        updated = mycol.update_one({ "user_id" : user_id },
+         {'$set': { 'user_name' : user_name} } )
+
+    # if (verified != ""):
+        # newAttributes = { "$set" : { "verified" : verified } }
+        # updated = mycol.update_one(user, { "verified" : verified })
+
+    # if (zipcode != ""):
+        # newAttributes = { "$set" : { "zipcode" : zipcode } }
+        # updated = mycol.update_one(user, { "zipcode" : zipcode })
+
+    return redirect('/home')
 
 
 
