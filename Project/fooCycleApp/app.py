@@ -112,16 +112,12 @@ def post_food_submit():
     mydb = myclient["foodpool"]
     mycol = mydb["posts"]
 
-    # get number of all posts, then add one, make that the post id??
-    food_name = input("Enter food name: ")
-    food_description = input("Describe your food!: ")
-    food_price = input("Enter price of food: ")
-    user_id = input("Enter your user id: ")
-
     post_id = genID(8)
 
     while post_id in [i['post_id'] for i in mycol.find()]:
         post_id = genID(8)
+
+    donated = False
 
     post = {
         'post_id' : len([i for i in mycol.find()]) + 1,
@@ -129,7 +125,8 @@ def post_food_submit():
         'food_descr': food_description,
         'food_price' : food_price,
         'user_id' : user_id,
-    }
+        'donated' : donated,
+     }
 
     mycol.insert_one(post)
     return redirect('/home')
@@ -166,6 +163,7 @@ def add_user_submit():
     # Mongo code for inserting data into our database
     mydb = myclient["foodpool"]
     mycol = mydb["users"]
+
     user_id = genID(8)
 
     while user_id in [i['user_id'] for i in mycol.find()]:
@@ -223,6 +221,62 @@ def view_postings():
                   + ", Description: " + i['food_descr']
                   + ", Price of food: " + i['food_price']
                   + ", Poster: " + i['user_id'] + "\n")
+
+class findUserPostings(FlaskForm):
+    """Search user postings."""
+    user_name = StringField('Name')
+    user_id = StringField('Enter your user id here:', [DataRequired()])
+    submit = SubmitField('Search your postings!')
+
+@app.route('/viewUserPostings', methods=('GET', 'POST'))
+def view_user_postings():
+    queryform = findUserPostings()
+    return render_template('/viewUserPostings.html', form = queryform)
+
+
+@app.route('/viewUserPostingsSubmit', methods=('GET', 'POST'))
+def view_user_postings_submit():
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "user_name"):
+            user_name = value
+        elif (key == "user_id"):
+            user_id = value
+
+    mydb = myclient["foodpool"]
+    mycol = mydb["posts"]
+
+    totalPosts = len([i for i in mycol.find( { "user_id" : user_id })])
+
+    if (totalPosts == 0):
+        posts = ["No postings to show!"]
+    else:
+        posts = mycol.find({ "user_id" : user_id })
+
+    return render_template('/showUserPostings.html', posts = posts)
+
+
+@app.route('/updateUser', methods=('GET', 'POST'))
+def update_profile():
+    mydb = myclient["foodpool"]
+    mycol = mydb["users"]
+    user = mycol.find( {   "user_name" : "Ryan"   } )
+    print(user)
+
+    return render_template('/updateUser.html', user = user)
+    # form = registerUser()
+
+
+# def update_user_submit():
+#     mydb = myclient["foodpool"]
+#     mycol = mydb["users"]
+
+
+
+
+
+
+
 
 # HELPER FUNCTIONS
 def genID(chars):

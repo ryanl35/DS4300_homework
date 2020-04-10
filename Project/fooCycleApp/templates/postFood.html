@@ -1,0 +1,11 @@
+
+<div class="FlaskForm">
+  <h2 class="postFood">Contact</h2>
+  <form method="POST" action="/postFoodSubmit">
+      <div class="food_name">{{ form.food_name.label }} {{ form.food_name(size=20) }}</div>
+      <div class="food_description">{{ form.food_description.label }} {{ form.food_description(size=50) }}</div>
+      <div class="food_price">{{ form.food_price.label }} {{ form.food_price(size=20) }}</div>
+      <div class="user_id">{{ form.user_id.label }} {{ form.user_id(size=20) }}</div>
+      {{ form.submit }}
+  </form>
+</div>
