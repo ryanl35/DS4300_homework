@@ -1,0 +1,14 @@
+<div>
+  {% for post in posts %}
+  Posting #:
+  <h1>{{ post['post_id'] }}</h1><br>
+  Food name:
+  <h2>{{ post['food_name'] }}</h2><br>
+  Description:
+  <h2>{{ post['food_descr'] }}</h2><br>
+  Price of food:
+  <h2>{{ post['food_price'] }}</h2><br>
+  Poster:
+  <h2>{{ post['user_id'] }}</h2><br>
+  {% endfor %}
+</div>

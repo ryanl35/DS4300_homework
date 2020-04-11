@@ -213,14 +213,10 @@ def view_postings():
     totalPosts = len([i for i in mycol.find()])
 
     if (totalPosts == 0):
-        print("\nNo postings to show!")
+        posts = ["No posts to show!"]
     else:
-        for i in mycol.find():
-            print("\nPosting #: " + str(i['post_id'])
-                  + ", Food name: " + i['food_name']
-                  + ", Description: " + i['food_descr']
-                  + ", Price of food: " + i['food_price']
-                  + ", Poster: " + i['user_id'] + "\n")
+        posts = mycol.find():
+    return render_template('/viewPostings.html', posts = posts)
 
 class findUserPostings(FlaskForm):
     """Search user postings."""
