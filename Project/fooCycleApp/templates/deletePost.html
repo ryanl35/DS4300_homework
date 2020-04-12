@@ -27,14 +27,15 @@
     Welcome to FooCycle!
   </div>
 
-  <div class="FlaskForm">
-    <h2 class="deletePost">Login</h2>
-    <form method="POST" action="/deletePost">
-        <div class="post_id">{{ form.post_id.label }} {{ form.post_id(size=20) }}</div>
-        {{ form.submit }}
-    </form>
+  <div class="w3-display-middle w3-center">
+    <div class="FlaskForm">
+      <h2 class="deletePost">Login</h2>
+      <form method="POST" action="/deletePost">
+          <div class="post_id">{{ form.post_id.label }} {{ form.post_id(size=20) }}</div>
+          {{ form.submit }}
+      </form>
+    </div>
   </div>
-
 </div>
 
 

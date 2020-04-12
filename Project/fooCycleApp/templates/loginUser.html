@@ -26,14 +26,18 @@
   <div class="w3-display-topright w3-padding-large w3-xlarge">
     Welcome to FooCycle!
   </div>
-
-  <div class="FlaskForm">
-    <h2 class="loginUser">Login</h2>
-    <form method="POST" action="/loginUserSubmit">
-        <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
-        <div class="password">{{ form.password.label }} {{ form.password }}</div>
-        {{ form.submit }}
-    </form>
+  <div class="w3-display-middle w3-center">
+    <div class="FlaskForm">
+      <h1 class="w3-jumbo w3-animate-top">Login</h1>
+      <hr class="w3-border-grey" style="margin:auto;width:40%">
+      <form method="POST" action="/loginUserSubmit">
+          <div class="user_name">{{ form.user_name.label(class="w3-xxlarge") }} {{ form.user_name }}</div>
+          <div class="password">{{ form.password.label(class="w3-xxlarge") }} {{ form.password }}</div>
+          {{ form.submit(class="w3-margin-top w3-xlarge w3-green") }}
+      </form>
+      <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+        onclick="location.href = '{{ url_for('index') }}';">Back</button>
+    </div>
   </div>
 
 </div>

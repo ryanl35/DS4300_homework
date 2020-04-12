@@ -27,15 +27,22 @@
     Welcome to FooCycle!
   </div>
 
-  <div class="FlaskForm">
-    <h2 class="postFood">Contact</h2>
-    <form method="POST" action="/postFoodSubmit">
-        <div class="food_name">{{ form.food_name.label }} {{ form.food_name(size=20) }}</div>
-        <div class="food_description">{{ form.food_description.label }} {{ form.food_description(size=50) }}</div>
-        <div class="food_price">{{ form.food_price.label }} {{ form.food_price(size=20) }}</div>
-        {{ form.submit }}
-    </form>
+  <div class="w3-display-middle w3-center">
+    <div class="FlaskForm">
+      <h1 class="w3-jumbo w3-animate-top">Contact</h1>
+      <hr class="w3-border-grey" style="margin:auto;width:40%">
+      <form method="POST" action="/postFoodSubmit">
+          <div class="food_name">{{ form.food_name.label(class="w3-xlarge") }} {{ form.food_name(size=20) }}</div>
+          <div class="food_description">{{ form.food_description.label(class="w3-xlarge") }} {{ form.food_description(size=50) }}</div>
+          <div class="food_price">{{ form.food_price.label(class="w3-xlarge") }} {{ form.food_price(size=20) }}</div>
+          {{ form.submit(class="w3-margin-top w3-xlarge w3-green") }}
+      </form>
+      <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+        onclick="location.href = '{{ url_for('userHomepage') }}';">Back</button>
+    </div>
   </div>
+
+
 
 </div>
 

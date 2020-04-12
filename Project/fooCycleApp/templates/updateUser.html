@@ -27,15 +27,20 @@
     Welcome to FooCycle!
   </div>
 
-  <div class="FlaskForm">
-    <h2 class="updateUser">Contact</h2>
-    <form method="POST" action="/updateUserSubmit">
-        <div class="user_id">{{ form.user_id.label }} {{ form.user_id(size=20) }}</div>
-        <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
-        <div class="verified">{{ form.verified.label }} {{ form.verified }}</div>
-        <div class="zipcode">{{ form.zipcode.label }} {{ form.zipcode }}</div>
-        {{ form.submit }}
-    </form>
+  <div class="w3-display-middle w3-center">
+    <div class="FlaskForm">
+      <h1 class="w3-jumbo w3-animate-top">Update User Information</h1>
+      <hr class="w3-border-grey" style="margin:auto;width:40%">
+      <form method="POST" action="/updateUserSubmit">
+          <div class="user_id">{{ form.name.label(class="w3-xlarge") }} {{ form.name }}</div>
+          <div class="user_name">{{ form.user_name.label(class="w3-xlarge") }} {{ form.user_name }}</div>
+          <div class="zipcode">{{ form.zipcode.label(class="w3-xlarge") }} {{ form.zipcode }}</div>
+          <div class="password">{{ form.password.label(class="w3-xlarge") }} {{ form.password }}</div>
+          {{ form.submit(class="w3-margin-top w3-xlarge w3-green") }}
+      </form>
+      <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+        onclick="location.href = '{{ url_for('userHomepage') }}';">Back</button>
+    </div>
   </div>
 
 </div>

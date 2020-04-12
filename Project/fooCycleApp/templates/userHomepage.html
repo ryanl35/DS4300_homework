@@ -47,10 +47,12 @@
       onclick="location.href = '{{  url_for('update_user')  }}';">Edit Profile</button>
     <button type="button" class="w3-margin-top w3-xlarge w3-green"
       onclick="location.href = '{{  url_for('update_food')  }}';">Edit Post</button>
-    <button type="button" class="w3-margin-top w3-xlarge w3-green"
-      onclick="location.href = '{{  url_for('delete_user')  }}';">Delete Profile</button>
-    <button type="button" class="w3-margin-top w3-xlarge w3-green"
+    <button type="button" class="w3-margin-top w3-xlarge w3-red"
       onclick="location.href = '{{  url_for('delete_post')  }}';">Delete Post</button>
+    <button type="button" class="w3-margin-top w3-xlarge w3-red"
+    onclick="location.href = '{{  url_for('delete_user')  }}';">Delete Profile</button>
+    <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+      onclick="location.href = '{{ url_for('index') }}';">Log Out</button>
   </div>
 
 </div>

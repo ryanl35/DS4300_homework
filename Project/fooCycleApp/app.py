@@ -4,7 +4,7 @@ import os
 import random
 from pymongo import MongoClient, errors
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired
 import hashlib
 
@@ -49,7 +49,7 @@ def userHomepage():
     # print(session['user_id'])
     if session.get('user_id'):
         return render_template('userHomepage.html')
-    return render_template('index.html')
+    return redirect('home')
 
 # ORGANIZED BY CRUD OPERATION
 
@@ -92,7 +92,7 @@ def create_community_submit():
 class postFood(FlaskForm):
     """Post a Food Item."""
     food_name = StringField('Name of Food', [DataRequired()])
-    food_description = StringField('Describe your food!')
+    food_description = TextAreaField('Describe your food!')
     food_price = StringField('Price', [DataRequired()])
     submit = SubmitField('Post')
 
@@ -202,7 +202,7 @@ class loginUserForm(FlaskForm):
     """Register user form."""
     user_name = StringField('Username', [DataRequired()])
     password = PasswordField('Password', [DataRequired()])
-    submit = SubmitField('Register')
+    submit = SubmitField('Login')
 
 @app.route('/loginUser', methods=('GET', 'POST'))
 def login():
@@ -269,7 +269,7 @@ def view_postings():
         posts = ["No posts to show!"]
     else:
         posts = mycol.find()
-    return render_template('/viewPostings.html', posts = posts)
+    return render_template('/viewPostings.html', totalPosts = totalPosts, posts = posts)
 
 class findUserPostings(FlaskForm):
     """Search user postings."""
@@ -311,11 +311,12 @@ def view_user_postings_submit():
 
 class updateUser(FlaskForm):
     """Edit your profile here."""
-    name = StringField('Enter your new username:')
-    user_name = StringField('New Name:')
+    name = StringField('Enter your new name:')
+    user_name = StringField('Enter your new username:')
     # ADMIN USE:
     # verified = BooleanField('Have you been verified?')
-    # zipcode = StringField('New Zipcode:')
+    zipcode = StringField('Enter your new zipcode:')
+    password = PasswordField('Enter your new password here:')
     submit = SubmitField('Edit your profile!!')
 
 @app.route('/updateUser', methods=('GET', 'POST'))
@@ -329,7 +330,7 @@ def update_user_submit():
     mycol = mydb["users"]
 
     for key, value in request.form.items():
-        print("key: {0}, value: {1}".format(key, value))
+        # print("key: {0}, value: {1}".format(key, value))
         if (key == "user_id"):
             user_id = value
         elif (key == "name"):
@@ -342,8 +343,10 @@ def update_user_submit():
         #         verified = "yes"
         #     elif (value == 'n'):
         #         verified == "no"
-        # elif (key == "zipcode"):
-        #     zipcode = value
+        elif (key == "zipcode"):
+            zipcode = value
+        elif (key == "password"):
+            password = hashlib.md5(value.encode()).hexdigest()
 
     user = mycol.find( { "user_id" : user_id } )
 
@@ -361,18 +364,20 @@ def update_user_submit():
         # newAttributes = { "$set" : { "verified" : verified } }
         # updated = mycol.update_one(user, { "verified" : verified })
 
-    # if (zipcode != ""):
-        # newAttributes = { "$set" : { "zipcode" : zipcode } }
-        # updated = mycol.update_one(user, { "zipcode" : zipcode })
-
-    return redirect('/home')
+        if (zipcode != ""):
+            updated = mycol.update_one({ "zipcode" : zipcode },
+             {'$set': { 'zipcode' : zipcode} } )
+        if (password != ""):
+            updated = mycol.update_one({ "password" : password },
+             {'$set': { 'password' : password} } )
+    return redirect('/userHomepage')
 
 class updateFoodForm(FlaskForm):
     """Edit your food item here."""
     post_id = StringField('Enter the post id here:', [DataRequired()])
-    food_name = StringField('New name of Food', [DataRequired()])
-    food_description = StringField('New description of your food!')
-    food_price = StringField('Change price to:', [DataRequired()])
+    food_name = StringField('New name of Food')
+    food_description = TextAreaField('New description of your food!')
+    food_price = StringField('Change price to:')
     submit = SubmitField('Edit your food item!')
 
 @app.route('/updateFood', methods=('GET', 'POST'))
@@ -386,7 +391,7 @@ def update_food_submit():
     mycol = mydb["posts"]
 
     for key, value in request.form.items():
-        print("key: {0}, value: {1}".format(key, value))
+        # print("key: {0}, value: {1}".format(key, value))
         if (key == "post_id"):
             post_id = value
         elif (key == "food_name"):
@@ -395,9 +400,6 @@ def update_food_submit():
             food_description = value
         elif (key == "food_price"):
             food_price = value
-        elif (key == "user_id"):
-            user_id = value
-
 
     post = mycol.find( { "post_id" : post_id } )
 
@@ -413,6 +415,8 @@ def update_food_submit():
         if (food_price != ""):
             updated = mycol.update_one({ "post_id" : post_id },
                  {'$set': { 'food_price' : food_price} } )
+        return redirect('userHomepage')
+    return redirect('index')
 
 
 # D(ELETE) OPERATIONS

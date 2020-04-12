@@ -35,19 +35,28 @@
     Welcome to FooCycle!
   </div>
 
-  <div>
-    {% for post in posts %}
-    Posting #:
-    <h1>{{ post['post_id'] }}</h1><br>
-    Food name:
-    <h2>{{ post['food_name'] }}</h2><br>
-    Description:
-    <h2>{{ post['food_descr'] }}</h2><br>
-    Price of food:
-    <h2>{{ post['food_price'] }}</h2><br>
-    Poster:
-    <h2>{{ post['user_id'] }}</h2><br>
-    {% endfor %}
+
+  <div class="w3-display-middle w3-center">
+    <div class="FlaskForm">
+      <h1 class="w3-jumbo w3-animate-top">Postings</h1>
+      <hr class="w3-border-grey" style="margin:auto;width:40%">
+      Total Posts:
+      <h1>{{ totalPosts }}</h1><br>
+      {% for post in posts %}
+      Posting #:
+      <h2>{{ post['post_id'] }}</h2><br>
+      Food name:
+      <h2>{{ post['food_name'] }}</h2><br>
+      Description:
+      <h2>{{ post['food_descr'] }}</h2><br>
+      Price of food:
+      <h2>{{ post['food_price'] }}</h2><br>
+      Poster:
+      <h2>{{ post['user_id'] }}</h2><br>
+      {% endfor %}
+      <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+        onclick="location.href = '{{ url_for('userHomepage') }}';">Back</button>
+    </div>
   </div>
 
 </div>

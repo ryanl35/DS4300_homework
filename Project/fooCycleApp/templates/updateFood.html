@@ -27,18 +27,19 @@
     Welcome to FooCycle!
   </div>
 
-  <div class="FlaskForm">
-    <h2 class="updateFood">Contact</h2>
-    <form method="POST" action="/updateFoodSubmit">
-        <div class="post_id">{{ form.post_id.label }} {{ form.post_id(size=20) }}</div>
-        <div class="user_id">{{ form.user_id.label }} {{ form.user_id(size=20) }}</div>
-        <div class="food_name">{{ form.food_name.label }} {{ form.food_name }}</div>
-        <div class="food_description">{{ form.food_description.label }} {{ form.food_description }}</div>
-        <div class="food_price">{{ form.food_price.label }} {{ form.food_price }}</div>
-        {{ form.submit }}
-    </form>
+  <div class="w3-display-middle w3-center">
+    <div class="FlaskForm">
+      <h2 class="updateFood">Contact</h2>
+      <form method="POST" action="/updateFoodSubmit">
+          <div class="post_id">{{ form.post_id.label }} {{ form.post_id(size=20) }}</div>
+          <div class="user_id">{{ form.user_id.label }} {{ form.user_id(size=20) }}</div>
+          <div class="food_name">{{ form.food_name.label }} {{ form.food_name }}</div>
+          <div class="food_description">{{ form.food_description.label }} {{ form.food_description }}</div>
+          <div class="food_price">{{ form.food_price.label }} {{ form.food_price }}</div>
+          {{ form.submit }}
+      </form>
+    </div>
   </div>
-
 </div>
 
 
