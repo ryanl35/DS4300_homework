@@ -1,9 +1,8 @@
 
 <div class="FlaskForm">
-  <h2 class="loginUser">Login</h2>
-  <form method="POST" action="/loginUserSubmit">
-      <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
-      <div class="password">{{ form.password.label }} {{ form.password }}</div>
+  <h2 class="deletePost">Login</h2>
+  <form method="POST" action="/deletePost">
+      <div class="post_id">{{ form.post_id.label }} {{ form.post_id(size=20) }}</div>
       {{ form.submit }}
   </form>
 </div>
