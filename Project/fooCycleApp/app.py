@@ -367,6 +367,7 @@ def update_user_submit():
 
     return redirect('/home')
 
+<<<<<<< HEAD
 class updateFoodForm(FlaskForm):
     """Edit your food item here."""
     post_id = StringField('Enter the post id here:', [DataRequired()])
@@ -491,6 +492,33 @@ def delete_community_submit():
         if (key == "zipcode"):
             zipcode = value
     mycol.delete_one({"zipcode" : zipcode})
+=======
+# D(ELETE) OPERATIONS
+# Delete a user, post, or community
+
+@app.route('/deleteUser', methods=('GET', 'POST'))
+def deleteUser():
+    user_id = input("ID to delete: ")
+
+    mydb = myclient["foodpool"]
+    mycol = mydb["users"]
+    mycol.delete_one({"user_id" : user_id})
+
+@app.route('/deleteCommunity', methods=('GET', 'POST'))
+def deleteCommunity():
+    zipcode = input("Zip Code of Community to delete: ")
+
+    mydb = myclient["foodpool"]
+    mycol = mydb["communities"]
+    mycol.delete_one({"zipcode" : zipcode})
+
+@app.route('/deletePost', methods=('GET', 'POST'))
+def deletePost():
+    post_id = input("Post ID of post to delete: ")
+    mydb = myclient["foodpool"]
+    mycol = mydb["posts"]
+    mycol.delete_one({"post_id" : post_id})
+>>>>>>> be748a323ba56ac86b0d143352a0abb6c952896b
 
 
 # HELPER FUNCTIONS
