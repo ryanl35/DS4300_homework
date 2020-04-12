@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import json
 import os
 import random
@@ -6,6 +6,7 @@ from pymongo import MongoClient, errors
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
+import hashlib
 
 # Starting Flask with socketio
 app = Flask(__name__,
@@ -41,6 +42,13 @@ print("Connected to DB")
 @app.route('/')
 @app.route('/home')
 def index():
+    return render_template('index.html')
+
+@app.route('/userHomepage')
+def userHomepage():
+    # print(session['user_id'])
+    if session.get('user_id'):
+        return render_template('userHomepage.html')
     return render_template('index.html')
 
 # ORGANIZED BY CRUD OPERATION
@@ -86,7 +94,6 @@ class postFood(FlaskForm):
     food_name = StringField('Name of Food', [DataRequired()])
     food_description = StringField('Describe your food!')
     food_price = StringField('Price', [DataRequired()])
-    user_id = StringField('User ID')
     submit = SubmitField('Post')
 
 @app.route('/postFood', methods=('GET', 'POST'))
@@ -134,9 +141,11 @@ def post_food_submit():
 
 class registerUser(FlaskForm):
     """Register user form."""
-    user_name = StringField('Name', [DataRequired()])
+    name = StringField('Name', [DataRequired()])
+    user_name = StringField('Username', [DataRequired()])
     verified = BooleanField('Are you verified?')
     zipcode = StringField('Zipcode', [DataRequired()])
+    password = PasswordField('Password', [DataRequired()])
     submit = SubmitField('Register')
 
 @app.route('/registerUser', methods=('GET', 'POST'))
@@ -147,9 +156,11 @@ def add_user():
 @app.route('/registerUserSubmit', methods=('GET', 'POST'))
 def add_user_submit():
     for key, value in request.form.items():
-        print("key: {0}, value: {1}".format(key, value))
+        # print("key: {0}, value: {1}".format(key, value))
         verified = "no"
-        if (key == "user_name"):
+        if (key == "name"):
+            name = value
+        elif (key == "user_name"):
             user_name = value
         elif (key == "verified"):
             if (value == 'y'):
@@ -158,7 +169,9 @@ def add_user_submit():
             #     verified == "no"
         elif (key == "zipcode"):
             zipcode = value
-    print("Found user info:", user_name, verified, zipcode)
+        elif (key == "password"):
+            password = hashlib.md5(value.encode()).hexdigest()
+    print("Found user info:", name, user_name, password, verified, zipcode)
 
     # Mongo code for inserting data into our database
     mydb = myclient["foodpool"]
@@ -169,15 +182,55 @@ def add_user_submit():
     while user_id in [i['user_id'] for i in mycol.find()]:
         user_id = genID(8)
 
+    query = mycol.find( { 'user_name' : user_name })
+    if (len(query) > 0):
+            return redirect('/registerUser')
+
     user_record = {
         'user_id' : user_id,
+        'name' : name,
         'user_name' : user_name,
+        'password' : password,
         'verified' : verified,
         'zipcode' : zipcode,
     }
 
     mycol.insert_one(user_record)
     return redirect('/home')
+
+class loginUserForm(FlaskForm):
+    """Register user form."""
+    user_name = StringField('Username', [DataRequired()])
+    password = PasswordField('Password', [DataRequired()])
+    submit = SubmitField('Register')
+
+@app.route('/loginUser', methods=('GET', 'POST'))
+def login():
+    form = loginUserForm()
+    return render_template('/loginUser.html', form = form)
+
+@app.route('/loginUserSubmit', methods=('GET', 'POST'))
+def login_submit():
+    for key, value in request.form.items():
+        # print("key: {0}, value: {1}".format(key, value))
+        verified = "no"
+        if (key == "user_name"):
+            user_name = value
+        elif (key == "password"):
+            password = hashlib.md5(value.encode()).hexdigest()
+    print("Found user info:", user_name)
+
+    # Mongo code for inserting data into our database
+    mydb = myclient["foodpool"]
+    mycol = mydb["users"]
+    query = mycol.find( { 'user_name' : user_name })
+    print(query[0]['password'])
+    if (password == query[0]['password']):
+        session['user_id'] = query[0]['user_id']
+        return redirect('/userHomepage')
+    else:
+        return redirect('/loginUser')
+
 
 # R(EAD) OPERATIONS
 # Viweing the total # of posts in the community, viewing all of the posts in the
@@ -203,7 +256,7 @@ def allUsers():
         # for i in mycol.find():
         #     print(i)
         users = mycol.find()
-    return render_template('/allUsers.html', users = users)
+    return render_template('/allUsers.html', totalPosts = totalPosts, users = users)
 
 @app.route('/viewPostings')
 def view_postings():
@@ -215,7 +268,7 @@ def view_postings():
     if (totalPosts == 0):
         posts = ["No posts to show!"]
     else:
-        posts = mycol.find():
+        posts = mycol.find()
     return render_template('/viewPostings.html', posts = posts)
 
 class findUserPostings(FlaskForm):
@@ -253,15 +306,16 @@ def view_user_postings_submit():
 
 
 # U(PDATE) OPERATIONS
-# Updating a usrs profile, updating the attribtues of a community,
+# Updating a users profile, updating the attributes of a community,
 # updating a food item
 
 class updateUser(FlaskForm):
     """Edit your profile here."""
-    user_id = StringField('Enter your user id here:', [DataRequired()])
+    name = StringField('Enter your new username:')
     user_name = StringField('New Name:')
-    verified = BooleanField('Have you been verified?')
-    zipcode = StringField('New Zipcode:')
+    # ADMIN USE:
+    # verified = BooleanField('Have you been verified?')
+    # zipcode = StringField('New Zipcode:')
     submit = SubmitField('Edit your profile!!')
 
 @app.route('/updateUser', methods=('GET', 'POST'))
@@ -278,23 +332,31 @@ def update_user_submit():
         print("key: {0}, value: {1}".format(key, value))
         if (key == "user_id"):
             user_id = value
+        elif (key == "name"):
+            name = value
         elif (key == "user_name"):
             user_name = value
-        elif (key == "verified"):
-            if (value == 'y'):
-                verified = "yes"
-            elif (value == 'n'):
-                verified == "no"
-        elif (key == "zipcode"):
-            zipcode = value
+        # ADMIN USE:
+        # elif (key == "verified"):
+        #     if (value == 'y'):
+        #         verified = "yes"
+        #     elif (value == 'n'):
+        #         verified == "no"
+        # elif (key == "zipcode"):
+        #     zipcode = value
 
     user = mycol.find( { "user_id" : user_id } )
 
-    if (user_name != ""):
-        newAttributes = {'$set': { 'user_name' : user_name} }
-        updated = mycol.update_one({ "user_id" : user_id },
-         {'$set': { 'user_name' : user_name} } )
+    if (session['user_id'] == user[0]['user_id']):
+        if (name != ""):
+            updated = mycol.update_one({ "user_id" : user_id },
+             {'$set': { 'name' : user_name} } )
 
+        if (user_name != ""):
+            updated = mycol.update_one({ "user_id" : user_id },
+             {'$set': { 'user_name' : user_name} } )
+
+    # ADMIN USE:
     # if (verified != ""):
         # newAttributes = { "$set" : { "verified" : verified } }
         # updated = mycol.update_one(user, { "verified" : verified })
@@ -305,11 +367,130 @@ def update_user_submit():
 
     return redirect('/home')
 
+class updateFoodForm(FlaskForm):
+    """Edit your food item here."""
+    post_id = StringField('Enter the post id here:', [DataRequired()])
+    food_name = StringField('New name of Food', [DataRequired()])
+    food_description = StringField('New description of your food!')
+    food_price = StringField('Change price to:', [DataRequired()])
+    submit = SubmitField('Edit your food item!')
+
+@app.route('/updateFood', methods=('GET', 'POST'))
+def update_food():
+    queryform = updateFoodForm()
+    return render_template('/updateFood.html', form = queryform)
+
+@app.route('/updateFoodSubmit', methods=('GET', 'POST'))
+def update_food_submit():
+    mydb = myclient["foodpfool"]
+    mycol = mydb["posts"]
+
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "post_id"):
+            post_id = value
+        elif (key == "food_name"):
+            food_name = value
+        elif (key == "food_description"):
+            food_description = value
+        elif (key == "food_price"):
+            food_price = value
+        elif (key == "user_id"):
+            user_id = value
 
 
+    post = mycol.find( { "post_id" : post_id } )
+
+    if (session['user_id'] == post[0]['user_id']):
+        if (food_name != ""):
+            updated = mycol.update_one({ "post_id" : post_id },
+                 {'$set': { 'food_name' : food_name} } )
+
+        if (food_description != ""):
+            updated = mycol.update_one({ "post_id" : post_id },
+                 {'$set': { 'food_description' : food_description} } )
+
+        if (food_price != ""):
+            updated = mycol.update_one({ "post_id" : post_id },
+                 {'$set': { 'food_price' : food_price} } )
 
 
+# D(ELETE) OPERATIONS
+# Delete a user, post, or community
 
+class deleteUser(FlaskForm):
+    """Delete your user here."""
+    password = PasswordField('Enter your password here:', [DataRequired()])
+    submit = SubmitField('Delete this user')
+
+@app.route('/deleteUser', methods=('GET', 'POST'))
+def delete_user():
+    deleteForm = deleteUser()
+    return render_template('/deleteUser.html', form = deleteForm)
+
+@app.route('/deleteUserSubmit', methods=('GET', 'POST'))
+def delete_user_submit():
+    mydb = myclient["foodpool"]
+    mycol = mydb["users"]
+
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "user_id"):
+            user_id = value
+
+    user = mycol.find( { "user_id" : user_id } )
+
+    if (session['user_id'] == user[0]['user_id']):
+        mycol.delete_one({"user_id" : user_id})
+
+class deletePost(FlaskForm):
+    """Delete your post here."""
+    post_id = StringField('Enter your post id here:', [DataRequired()])
+    submit = SubmitField('Delete this post')
+
+@app.route('/deletePost', methods=('GET', 'POST'))
+def delete_post():
+    deleteForm = deletePost()
+    return render_template('/deletePost.html', form = deleteForm)
+
+@app.route('/deletePost', methods=('GET', 'POST'))
+def delete_post_submit():
+    mydb = myclient["foodpool"]
+    mycol = mydb["posts"]
+
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "post_id"):
+            post_id = value
+
+    post = mycol.find( { "post_id" : post_id } )
+
+    if (session['user_id'] == post[0]['user_id']):
+        mycol.delete_one({"post_id" : post_id})
+        ## bring user back to user homepage (userHomepage)
+
+## ADMIN ONLY
+class deleteCommunity(FlaskForm):
+    """Delete a community."""
+    zipcode = StringField('Enter the zipcode  here:', [DataRequired()])
+    password = PasswordField('Enter your password here:', [DataRequired()])
+    submit = SubmitField('Delete this community')
+
+@app.route('/deleteCommunity', methods=('GET', 'POST'))
+def delete_community():
+    deleteForm = deleteCommunity()
+    return render_template('/deleteCommunitySubmit.html', form = deleteForm)
+
+@app.route('/deleteCommunitySubmit', methods=('GET', 'POST'))
+def delete_community_submit():
+    mydb = myclient["foodpool"]
+    mycol = mydb["communities"]
+
+    for key, value in request.form.items():
+        print("key: {0}, value: {1}".format(key, value))
+        if (key == "zipcode"):
+            zipcode = value
+    mycol.delete_one({"zipcode" : zipcode})
 
 
 # HELPER FUNCTIONS
