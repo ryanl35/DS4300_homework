@@ -1,12 +1,50 @@
+<!DOCTYPE html>
+<html>
+<title>FooCycle</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<style>
+  body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif}
 
-<div class="FlaskForm">
-  <h2 class="registerUser">Contact</h2>
-  <form method="POST" action="/registerUserSubmit">
-      <div class="name">{{ form.name.label }} {{ form.name }}</div>
-      <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
-      <div class="password">{{ form.password.label }} {{ form.password }}</div>
-      <div class="verified">{{ form.verified.label }} {{ form.verified }}</div>
-      <div class="zipcode">{{ form.zipcode.label }} {{ form.zipcode }}</div>
-      {{ form.submit }}
-  </form>
+  body, html {
+    height: 100%;
+    line-height: 1.8;
+  }
+
+  .w3-bar .w3-button {
+    padding: 16px;
+  }
+</style>
+<body>
+
+<div class="bgimg w3-display-container w3-text-white">
+  <div class="w3-display-topleft w3-padding-large w3-xlarge">
+    FooCycle
+  </div>
+  <div class="w3-display-topright w3-padding-large w3-xlarge">
+    Welcome to FooCycle!
+  </div>
+
+  <div class="FlaskForm">
+    <h2 class="registerUser">Contact</h2>
+    <form method="POST" action="/registerUserSubmit">
+        <div class="name">{{ form.name.label }} {{ form.name }}</div>
+        <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
+        <div class="password">{{ form.password.label }} {{ form.password }}</div>
+        <div class="verified">{{ form.verified.label }} {{ form.verified }}</div>
+        <div class="zipcode">{{ form.zipcode.label }} {{ form.zipcode }}</div>
+        {{ form.submit }}
+    </form>
+  </div>
+
 </div>
+
+
+<script>
+
+</script>
+
+</body>
+</html>
