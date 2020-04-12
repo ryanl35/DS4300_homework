@@ -237,7 +237,7 @@ hr{border:0;border-top:1px solid #eee;margin:20px 0}
 body,h1 {font-family: "Raleway", sans-serif}
 body, html {height: 100%}
 .bgimg {
-    background-image: url("https://i.imgur.com/J3gZSag.jpg");
+  background-image: url("backgroundFood.jpg");
   min-height: 100%;
   background-position: center;
   background-size: cover;
