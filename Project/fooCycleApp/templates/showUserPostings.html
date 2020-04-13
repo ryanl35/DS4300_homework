@@ -29,12 +29,11 @@
 
   <div class="w3-display-middle w3-center">
     {% for post in posts %}
-    Post:
+    <h1>Post ID: {{ post['post_id'] }}
     <h1>Name of food: {{ post['food_name'] }}</h1><br>
     <h2>Description: {{ post['food_descr'] }}</h2><br>
     <h2>Price: {{ post['food_price'] }}</h2><br>
     <h2>Has this item been donated yet? {{ post['donated'] }}</h2><br>
-    {{ post }}
     {% endfor %}
   </div>
 

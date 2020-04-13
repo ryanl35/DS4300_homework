@@ -111,10 +111,8 @@ def post_food_submit():
             food_description = value
         elif (key == "food_price"):
             food_price = value
-        elif (key == "user_id"):
-            user_id = value
 
-    print("Found food info:", food_name, food_description, food_price, user_id)
+    print("Found food info:", food_name, food_description, food_price)
 
     mydb = myclient["foodpool"]
     mycol = mydb["posts"]
@@ -131,12 +129,12 @@ def post_food_submit():
         'food_name' : food_name,
         'food_descr': food_description,
         'food_price' : food_price,
-        'user_id' : user_id,
+        'user_id' : session['user_id'],
         'donated' : donated,
      }
 
     mycol.insert_one(post)
-    return redirect('/home')
+    return redirect('/userHomepage')
 
 
 class registerUser(FlaskForm):
@@ -183,7 +181,7 @@ def add_user_submit():
         user_id = genID(8)
 
     query = mycol.find( { 'user_name' : user_name })
-    if (len(query) > 0):
+    if (query.count() > 0):
             return redirect('/registerUser')
 
     user_record = {
@@ -224,7 +222,9 @@ def login_submit():
     mydb = myclient["foodpool"]
     mycol = mydb["users"]
     query = mycol.find( { 'user_name' : user_name })
-    print(query[0]['password'])
+
+    # print(query[0]['password'])
+
     if (password == query[0]['password']):
         session['user_id'] = query[0]['user_id']
         return redirect('/userHomepage')
@@ -273,9 +273,9 @@ def view_postings():
 
 class findUserPostings(FlaskForm):
     """Search user postings."""
-    user_name = StringField('Name')
-    user_id = StringField('Enter your user id here:', [DataRequired()])
-    submit = SubmitField('Search your postings!')
+    name = StringField('Name')
+    user_name = StringField('Enter username here:', [DataRequired()])
+    submit = SubmitField('Search postings!')
 
 @app.route('/viewUserPostings', methods=('GET', 'POST'))
 def view_user_postings():
@@ -289,18 +289,23 @@ def view_user_postings_submit():
         print("key: {0}, value: {1}".format(key, value))
         if (key == "user_name"):
             user_name = value
-        elif (key == "user_id"):
-            user_id = value
 
     mydb = myclient["foodpool"]
-    mycol = mydb["posts"]
 
-    totalPosts = len([i for i in mycol.find( { "user_id" : user_id })])
+    userscol = mydb["users"]
+    userquery = userscol.find( { "user_name" : user_name } )
+    queryUserID = userquery[0]["user_id"]
+
+    print(queryUserID)
+
+    postscol = mydb["posts"]
+
+    totalPosts = len([i for i in postscol.find( { "user_id" : queryUserID })])
 
     if (totalPosts == 0):
         posts = ["No postings to show!"]
     else:
-        posts = mycol.find({ "user_id" : user_id })
+        posts = postscol.find({ "user_id" : queryUserID })
 
     return render_template('/showUserPostings.html', posts = posts)
 
@@ -442,10 +447,13 @@ def delete_user_submit():
         if (key == "password"):
             password = value
 
-    user = mycol.find( { "user_id" : user_id } )
+    user = mycol.find( { "password" : password } )
 
     if (session['user_id'] == user[0]['user_id']):
         mycol.delete_one({"user_id" : user_id})
+
+
+    return redirect("/home")
 
 class deletePost(FlaskForm):
     """Delete your post here."""
@@ -472,6 +480,7 @@ def delete_post_submit():
     if (session['user_id'] == post[0]['user_id']):
         mycol.delete_one({"post_id" : post_id})
         ## bring user back to user homepage (userHomepage)
+        return redirect('/home')
 
 ## ADMIN ONLY
 class deleteCommunity(FlaskForm):
