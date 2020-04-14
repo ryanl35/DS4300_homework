@@ -250,13 +250,6 @@ def login_submit():
 # Viweing the total # of posts in the community, viewing all of the posts in the
 # community, viewing a user
 
-# @app.route('/totalPosts')
-# def totalPosts():
-#     mydb = myclient["foodpool"]
-#     mycol = mydb["posts"]
-#
-#     print("\nTotal number of posts: " + len([i for i in mycol.find()]))
-
 @app.route('/allUsers')
 def allUsers():
     mydb = myclient["foodpool"]
@@ -333,6 +326,16 @@ def view_user_postings_submit():
     return render_template('/showUserPostings.html', posts = posts)
 
 
+@app.route('/viewAccount', methods=('GET', 'POST'))
+def view_account():
+    # use our database
+    mydb = myclient["foodpool"]
+    # use the "users" collection
+    userscol = mydb["users"]
+    userquery = userscol.find( { "user_id" : session['user_id'] } )
+
+    return render_template('viewAccount.html', user = userquery)
+
 # U(PDATE) OPERATIONS
 # Updating a users profile, updating the attributes of a community,
 # updating a food item
@@ -380,7 +383,7 @@ def update_user_submit():
 
     if (name != ""):
         updated = mycol.update_one( queryDoc,
-         {'$set': { 'name' : user_name} } )
+         {'$set': { 'name' : name} } )
 
     if (user_name != ""):
         updated = mycol.update_one( queryDoc,
@@ -406,6 +409,7 @@ class updateFoodForm(FlaskForm):
     food_name = StringField('New name of Food')
     food_description = TextAreaField('New description of your food!')
     food_price = StringField('Change price to:')
+    food_zipcode = StringField('Change food zipcode:')
     submit = SubmitField('Edit your food item!')
 
 @app.route('/updateFood', methods=('GET', 'POST'))
@@ -431,7 +435,12 @@ def update_food_submit():
 
     post = mycol.find( { "post_id" : post_id } )
 
-    if (session['user_id'] == post[0]['user_id']):
+    if (post.count() == 0):
+        flash("No food item found")
+        return redirect('/updateFood')
+
+
+    elif (session['user_id'] == post[0]['user_id']):
         if (food_name != ""):
             updated = mycol.update_one({ "post_id" : post_id },
                  {'$set': { 'food_name' : food_name} } )
@@ -443,8 +452,10 @@ def update_food_submit():
         if (food_price != ""):
             updated = mycol.update_one({ "post_id" : post_id },
                  {'$set': { 'food_price' : food_price} } )
+        if (food_zipcode != ""):
+            updated = mycol.update_one({ "post_id" : post_id },
+                 {'$set': { 'food_zipcode' : food_zipcode} } )
         return redirect('userHomepage')
-    return redirect('index')
 
 
 # D(ELETE) OPERATIONS
@@ -470,12 +481,16 @@ def delete_user_submit():
         if (key == "password"):
             password = hashlib.md5(value.encode()).hexdigest()
 
-    user = mycol.find( { 'password' : password } )
+    user = mycol.find( { 'user_id' : session['user_id'] } )
     print(user.count())
 
-    if (session['user_id'] == user[0]['user_id']):
-        mycol.delete_one({'password' : password})
-        return redirect("/home")
+    if (user[0]['password'] == password):
+        mycol.delete_one({'user_id' : session['user_id'] } )
+        flash("Account deleted successfully.")
+        return redirect("/loginUser")
+    else:
+        flash("Account failed to delete. Please try again.")
+        return redirect('/userHomepage')
 
 class deletePost(FlaskForm):
     """Delete your post here."""
@@ -509,7 +524,7 @@ def delete_post_submit():
         return redirect('/userHomepage')
     else:
         flash("Error: Please login again")
-        return redirect('/userLogin')
+        return redirect('/loginUser')
 
 ## ADMIN ONLY
 class deleteCommunity(FlaskForm):

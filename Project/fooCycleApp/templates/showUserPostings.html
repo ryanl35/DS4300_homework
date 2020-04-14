@@ -35,6 +35,7 @@
           <th class="w3-large">Name of food:</th>
           <th class="w3-large">Description:</th>
           <th class="w3-large">Price:</th>
+          <th class="w3-large">User ID # of Poster:</th>
           <th class="w3-large">Has this item been donated yet?</th>
         </tr>
         {% for post in posts %}
@@ -43,6 +44,7 @@
           <th class="w3-large">{{ post['food_name'] }}</th>
           <th class="w3-large">{{ post['food_descr'] }}</th>
           <th class="w3-large">{{ post['food_price'] }}</th>
+          <th class="w3-large">{{ post['user_id']}}</th>
           <th class="w3-large">{{ post['donated'] }}</th>
         </tr>
         {% endfor %}
