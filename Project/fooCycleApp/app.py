@@ -425,7 +425,7 @@ def update_food_submit():
     for key, value in request.form.items():
         # print("key: {0}, value: {1}".format(key, value))
         if (key == "post_id"):
-            post_id = value
+            post_id = int(value)
         elif (key == "food_name"):
             food_name = value
         elif (key == "food_description"):
