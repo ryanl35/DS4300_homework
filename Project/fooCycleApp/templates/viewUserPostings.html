@@ -37,11 +37,13 @@
 
   <div class="w3-display-middle w3-center">
     <div class="FlaskForm">
-      <h2 class="findUserPostings">Contact</h2>
+      <h2 class="findUserPostings">Find a user's posts!</h2>
       <form method="POST" action="/viewUserPostingsSubmit">
           <div class="user_name">{{ form.user_name.label }} {{ form.user_name(size=20) }}</div>
           {{ form.submit }}
       </form>
+      <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+        onclick="location.href = '{{ url_for('userHomepage') }}';">Back</button>
     </div>
   </div>
 

@@ -29,11 +29,13 @@
 
   <div class="w3-display-middle w3-center">
     <div class="FlaskForm">
-      <h2 class="loginUser">Login</h2>
-      <form method="POST" action="/loginUserSubmit">
+      <h2 class="deleteUser">Delete profile</h2>
+      <form method="POST" action="/deleteUserSubmit">
           <div class="password">{{ form.password.label }} {{ form.password }}</div>
           {{ form.submit }}
       </form>
+      <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+        onclick="location.href = '{{ url_for('index') }}';">Back</button>
     </div>
   </div>
 </div>

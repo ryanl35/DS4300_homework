@@ -35,6 +35,8 @@
     <h2>Price: {{ post['food_price'] }}</h2><br>
     <h2>Has this item been donated yet? {{ post['donated'] }}</h2><br>
     {% endfor %}
+    <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
+      onclick="location.href = '{{ url_for('userHomepage') }}';">Back</button>
   </div>
 
 </div>

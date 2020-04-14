@@ -236,12 +236,12 @@ def login_submit():
 # Viweing the total # of posts in the community, viewing all of the posts in the
 # community, viewing a user
 
-@app.route('/totalPosts')
-def totalPosts():
-    mydb = myclient["foodpool"]
-    mycol = mydb["posts"]
-
-    print("\nTotal number of posts: " + len([i for i in mycol.find()]))
+# @app.route('/totalPosts')
+# def totalPosts():
+#     mydb = myclient["foodpool"]
+#     mycol = mydb["posts"]
+#
+#     print("\nTotal number of posts: " + len([i for i in mycol.find()]))
 
 @app.route('/allUsers')
 def allUsers():
@@ -258,7 +258,7 @@ def allUsers():
         users = mycol.find()
     return render_template('/allUsers.html', totalPosts = totalPosts, users = users)
 
-@app.route('/viewPostings')
+@app.route('/viewAllPostings')
 def view_postings():
     mydb = myclient["foodpool"]
     mycol = mydb["posts"]
@@ -269,7 +269,7 @@ def view_postings():
         posts = ["No posts to show!"]
     else:
         posts = mycol.find()
-    return render_template('/viewPostings.html', totalPosts = totalPosts, posts = posts)
+    return render_template('/viewAllPostings.html', totalPosts = totalPosts, posts = posts)
 
 class findUserPostings(FlaskForm):
     """Search user postings."""
@@ -290,17 +290,21 @@ def view_user_postings_submit():
         if (key == "user_name"):
             user_name = value
 
+    # use our database
     mydb = myclient["foodpool"]
-
+    # use the "users" collection
     userscol = mydb["users"]
+    # find the user with the user_name entered in the query
     userquery = userscol.find( { "user_name" : user_name } )
+    # get their user_id
     queryUserID = userquery[0]["user_id"]
-
     print(queryUserID)
-
+    print(user_name)
+    # use the posts collection
     postscol = mydb["posts"]
-
+    # find out how many posts this user made
     totalPosts = len([i for i in postscol.find( { "user_id" : queryUserID })])
+    print(totalPosts)
 
     if (totalPosts == 0):
         posts = ["No postings to show!"]
@@ -322,7 +326,7 @@ class updateUser(FlaskForm):
     # verified = BooleanField('Have you been verified?')
     zipcode = StringField('Enter your new zipcode:')
     password = PasswordField('Enter your new password here:')
-    submit = SubmitField('Edit your profile!!')
+    submit = SubmitField('Edit your profile!')
 
 @app.route('/updateUser', methods=('GET', 'POST'))
 def update_user():
@@ -336,9 +340,7 @@ def update_user_submit():
 
     for key, value in request.form.items():
         # print("key: {0}, value: {1}".format(key, value))
-        if (key == "user_id"):
-            user_id = value
-        elif (key == "name"):
+        if (key == "name"):
             name = value
         elif (key == "user_name"):
             user_name = value
@@ -353,28 +355,30 @@ def update_user_submit():
         elif (key == "password"):
             password = hashlib.md5(value.encode()).hexdigest()
 
-    user = mycol.find( { "user_id" : user_id } )
+    queryDoc = { "user_id" : session['user_id'] }
 
-    if (session['user_id'] == user[0]['user_id']):
-        if (name != ""):
-            updated = mycol.update_one({ "user_id" : user_id },
-             {'$set': { 'name' : user_name} } )
+    user = mycol.find( queryDoc )
 
-        if (user_name != ""):
-            updated = mycol.update_one({ "user_id" : user_id },
-             {'$set': { 'user_name' : user_name} } )
+    if (name != ""):
+        updated = mycol.update_one( queryDoc,
+         {'$set': { 'name' : user_name} } )
+
+    if (user_name != ""):
+        updated = mycol.update_one( queryDoc,
+         {'$set': { 'user_name' : user_name} } )
 
     # ADMIN USE:
     # if (verified != ""):
         # newAttributes = { "$set" : { "verified" : verified } }
         # updated = mycol.update_one(user, { "verified" : verified })
 
-        if (zipcode != ""):
-            updated = mycol.update_one({ "zipcode" : zipcode },
-             {'$set': { 'zipcode' : zipcode} } )
-        if (password != ""):
-            updated = mycol.update_one({ "password" : password },
-             {'$set': { 'password' : password} } )
+    if (zipcode != ""):
+        updated = mycol.update_one( queryDoc,
+         {'$set': { 'zipcode' : zipcode} } )
+    if (password != ""):
+        updated = mycol.update_one( queryDoc,
+         {'$set': { 'password' : password} } )
+
     return redirect('/userHomepage')
 
 class updateFoodForm(FlaskForm):
@@ -445,13 +449,12 @@ def delete_user_submit():
     for key, value in request.form.items():
         print("key: {0}, value: {1}".format(key, value))
         if (key == "password"):
-            password = value
+            password = hashlib.md5(value.encode()).hexdigest()
 
-    user = mycol.find( { "password" : password } )
+    user = mycol.find( { 'password' : password } )
 
     if (session['user_id'] == user[0]['user_id']):
-        mycol.delete_one({"user_id" : user_id})
-
+        mycol.delete_one({'password' : password})
 
     return redirect("/home")
 
