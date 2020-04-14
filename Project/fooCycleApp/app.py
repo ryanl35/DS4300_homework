@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, flash
 import json
 import os
 import random
 from pymongo import MongoClient, errors
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Length
 import hashlib
 
 # Starting Flask with socketio
@@ -93,6 +93,7 @@ class postFood(FlaskForm):
     """Post a Food Item."""
     food_name = StringField('Name of Food', [DataRequired()])
     food_description = TextAreaField('Describe your food!')
+    food_zipcode = StringField('Enter the zipcode of your food', [DataRequired()])
     food_price = StringField('Price', [DataRequired()])
     submit = SubmitField('Post')
 
@@ -111,6 +112,8 @@ def post_food_submit():
             food_description = value
         elif (key == "food_price"):
             food_price = value
+        elif (key == "food_zipcode"):
+            food_zipcode = value
 
     print("Found food info:", food_name, food_description, food_price)
 
@@ -129,6 +132,7 @@ def post_food_submit():
         'food_name' : food_name,
         'food_descr': food_description,
         'food_price' : food_price,
+        'food_zipcode' : food_zipcode,
         'user_id' : session['user_id'],
         'donated' : donated,
      }
@@ -141,8 +145,8 @@ class registerUser(FlaskForm):
     """Register user form."""
     name = StringField('Name', [DataRequired()])
     user_name = StringField('Username', [DataRequired()])
-    verified = BooleanField('Are you verified?')
-    zipcode = StringField('Zipcode', [DataRequired()])
+    # verified = BooleanField('Are you verified?')
+    zipcode = StringField('Zipcode', [DataRequired(), Length(min=5)])
     password = PasswordField('Password', [DataRequired()])
     submit = SubmitField('Register')
 
@@ -182,7 +186,8 @@ def add_user_submit():
 
     query = mycol.find( { 'user_name' : user_name })
     if (query.count() > 0):
-            return redirect('/registerUser')
+        flash("Username taken")
+        return redirect('/registerUser')
 
     user_record = {
         'user_id' : user_id,
@@ -193,8 +198,16 @@ def add_user_submit():
         'zipcode' : zipcode,
     }
 
+    zipcol = mydb["communities"]
+    zipcodequery = zipcol.find( { "zipcode" : zipcode} )
+
+    if (zipcodequery.count() == 0):
+        flash("Community doesn't exist in our database! Contact an admin to add your community!")
+        return redirect('/registerUser')
+
     mycol.insert_one(user_record)
-    return redirect('/home')
+    flash("Account created successfully!")
+    return redirect('/loginUser')
 
 class loginUserForm(FlaskForm):
     """Register user form."""
@@ -229,6 +242,7 @@ def login_submit():
         session['user_id'] = query[0]['user_id']
         return redirect('/userHomepage')
     else:
+        flash("Login failure")
         return redirect('/loginUser')
 
 
@@ -274,7 +288,7 @@ def view_postings():
 class findUserPostings(FlaskForm):
     """Search user postings."""
     name = StringField('Name')
-    user_name = StringField('Enter username here:', [DataRequired()])
+    food_zipcode = StringField('Enter zipcode here:', [DataRequired()])
     submit = SubmitField('Search postings!')
 
 @app.route('/viewUserPostings', methods=('GET', 'POST'))
@@ -287,29 +301,22 @@ def view_user_postings():
 def view_user_postings_submit():
     for key, value in request.form.items():
         print("key: {0}, value: {1}".format(key, value))
-        if (key == "user_name"):
-            user_name = value
+        if (key == "food_zipcode"):
+            food_zipcode = value
 
     # use our database
     mydb = myclient["foodpool"]
     # use the "users" collection
-    userscol = mydb["users"]
-    # find the user with the user_name entered in the query
-    userquery = userscol.find( { "user_name" : user_name } )
-    # get their user_id
-    queryUserID = userquery[0]["user_id"]
-    print(queryUserID)
-    print(user_name)
-    # use the posts collection
     postscol = mydb["posts"]
-    # find out how many posts this user made
-    totalPosts = len([i for i in postscol.find( { "user_id" : queryUserID })])
-    print(totalPosts)
+    # find the user with the user_name entered in the query
+    postsquery = postscol.find( { "food_zipcode" : food_zipcode })
+
+    totalPosts = postsquery.count()
 
     if (totalPosts == 0):
         posts = ["No postings to show!"]
     else:
-        posts = postscol.find({ "user_id" : queryUserID })
+        posts = postscol.find({ "food_zipcode" : food_zipcode })
 
     return render_template('/showUserPostings.html', posts = posts)
 
@@ -468,7 +475,7 @@ def delete_post():
     deleteForm = deletePost()
     return render_template('/deletePost.html', form = deleteForm)
 
-@app.route('/deletePost', methods=('GET', 'POST'))
+@app.route('/deletePostSubmit', methods=('GET', 'POST'))
 def delete_post_submit():
     mydb = myclient["foodpool"]
     mycol = mydb["posts"]
@@ -476,14 +483,21 @@ def delete_post_submit():
     for key, value in request.form.items():
         print("key: {0}, value: {1}".format(key, value))
         if (key == "post_id"):
-            post_id = value
+            post_id = int(value)
 
     post = mycol.find( { "post_id" : post_id } )
+
+    print(post.count())
 
     if (session['user_id'] == post[0]['user_id']):
         mycol.delete_one({"post_id" : post_id})
         ## bring user back to user homepage (userHomepage)
-        return redirect('/home')
+        deletedMessage = "Deleted post: " + str(post_id)
+        flash(deletedMessage)
+        return redirect('/userHomepage')
+    else:
+        flash("Error: Please login again")
+        return redirect('/userLogin')
 
 ## ADMIN ONLY
 class deleteCommunity(FlaskForm):

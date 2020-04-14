@@ -38,6 +38,13 @@
   <div class="w3-display-middle w3-center">
     <h1 class="w3-jumbo w3-animate-top">FooCycle Homepage</h1>
     <hr class="w3-border-grey" style="margin:auto;width:40%">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <h2 class="w3-xlarge">{{ message }}</h2>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <p class="w3-xxlarge">Great food should be tasted, not wasted.</p>
     <button type="button" class="w3-margin-top w3-xlarge w3-green"
       onclick="location.href = '{{  url_for('post_food')  }}';">Post Food</button>

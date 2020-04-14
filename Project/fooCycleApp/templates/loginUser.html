@@ -30,6 +30,13 @@
     <div class="FlaskForm">
       <h1 class="w3-jumbo w3-animate-top">Login</h1>
       <hr class="w3-border-grey" style="margin:auto;width:40%">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <h2 class="w3-xlarge">{{ message }}</h2>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       <form method="POST" action="/loginUserSubmit">
           <div class="user_name">{{ form.user_name.label(class="w3-xxlarge") }} {{ form.user_name }}</div>
           <div class="password">{{ form.password.label(class="w3-xxlarge") }} {{ form.password }}</div>

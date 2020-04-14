@@ -30,10 +30,16 @@
     <div class="FlaskForm">
       <h1 class="w3-jumbo w3-animate-top">Register</h1>
       <hr class="w3-border-grey" style="margin:auto;width:40%">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <h2 class="w3-xlarge">{{ message }}</h2>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       <form method="POST" action="/registerUserSubmit">
           <div class="name">{{ form.name.label(class="w3-xlarge") }} {{ form.name }}</div>
           <div class="user_name">{{ form.user_name.label(class="w3-xlarge") }} {{ form.user_name }}</div>
-          <div class="verified">{{ form.verified.label(class="w3-xlarge") }} {{ form.verified }}</div>
           <div class="zipcode">{{ form.zipcode.label(class="w3-xlarge") }} {{ form.zipcode }}</div>
           <div class="password">{{ form.password.label(class="w3-xlarge") }} {{ form.password }}</div>
           {{ form.submit(class="w3-margin-top w3-xlarge w3-green") }}
