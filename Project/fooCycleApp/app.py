@@ -201,9 +201,9 @@ def add_user_submit():
     zipcol = mydb["communities"]
     zipcodequery = zipcol.find( { "zipcode" : zipcode} )
 
-    if (zipcodequery.count() == 0):
-        flash("Community doesn't exist in our database! Contact an admin to add your community!")
-        return redirect('/registerUser')
+    # if (zipcodequery.count() == 0):
+        # flash("Community doesn't exist in our database! Contact an admin to add your community!")
+        # return redirect('/registerUser')
 
     mycol.insert_one(user_record)
     flash("Account created successfully!")
@@ -237,13 +237,13 @@ def login_submit():
     query = mycol.find( { 'user_name' : user_name })
 
     # print(query[0]['password'])
-
-    if (password == query[0]['password']):
-        session['user_id'] = query[0]['user_id']
-        return redirect('/userHomepage')
-    else:
+    if (query.count() == 0):
         flash("Login failure")
         return redirect('/loginUser')
+    else:
+        session['user_id'] = query[0]['user_id']
+        return redirect('/userHomepage')
+
 
 
 # R(EAD) OPERATIONS
@@ -294,15 +294,27 @@ class findUserPostings(FlaskForm):
 @app.route('/viewUserPostings', methods=('GET', 'POST'))
 def view_user_postings():
     queryform = findUserPostings()
-    return render_template('/viewUserPostings.html', form = queryform)
+    # use our database
+    mydb = myclient["foodpool"]
+    # use the "users" collection
+    postscol = mydb["posts"]
+    postsquery = postscol.find()
+    communities = []
+    for post in postsquery:
+        # print(post)
+        if post['food_zipcode'] not in communities:
+            communities.append(post['food_zipcode'])
+    return render_template('/viewUserPostings.html', form = queryform, communities = communities)
 
 
 @app.route('/viewUserPostingsSubmit', methods=('GET', 'POST'))
 def view_user_postings_submit():
-    for key, value in request.form.items():
-        print("key: {0}, value: {1}".format(key, value))
-        if (key == "food_zipcode"):
-            food_zipcode = value
+    # for key, value in request.form.items():
+    #     print("key: {0}, value: {1}".format(key, value))
+    #     if (key == "food_zipcode"):
+    #         food_zipcode = value
+    food_zipcode = request.form['ZipCodeDropDown']
+    print(food_zipcode)
 
     # use our database
     mydb = myclient["foodpool"]
@@ -459,11 +471,11 @@ def delete_user_submit():
             password = hashlib.md5(value.encode()).hexdigest()
 
     user = mycol.find( { 'password' : password } )
+    print(user.count())
 
     if (session['user_id'] == user[0]['user_id']):
         mycol.delete_one({'password' : password})
-
-    return redirect("/home")
+        return redirect("/home")
 
 class deletePost(FlaskForm):
     """Delete your post here."""

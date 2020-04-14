@@ -39,7 +39,21 @@
     <div class="FlaskForm">
       <h2 class="findUserPostings">Find posts!</h2>
       <form method="POST" action="/viewUserPostingsSubmit">
-          <div class="user_name">{{ form.food_zipcode.label }} {{ form.food_zipcode(size=20) }}</div>
+          <!-- <div class="user_name">{{ form.food_zipcode.label }} {{ form.food_zipcode(size=20) }}</div> -->
+
+          <div class="row">
+
+          <div class="column">
+          <div class="zip">
+          <p>Zip Codes:</p>
+          <select id="ZipCodeDropDown" name="ZipCodeDropDown">
+            <option value="null">Select Zip Code</option>
+            {% for zipCode in communities %}
+            <option>{{ zipCode }}</option>
+            {% endfor %}
+          </select>
+          </div>
+          </div>
           {{ form.submit }}
       </form>
       <button type="button" class="w3-margin-top w3-xlarge w3-dark-grey"
